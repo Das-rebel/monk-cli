@@ -179,7 +179,7 @@ class TreeQuestEngine:
                 model_name = self.models.pick(ModelRole.SIMULATOR, self.config.objective)
             
             # Create agent-specific simulation prompt
-            prompt = self._create_agent_simulation_prompt(node, initial_state, agent_role)
+            prompt = self._create_agent_simulation_prompt(node, initial_state["task"], initial_state["context"])
             
             # Simulate using the selected agent
             reward = await self._execute_agent_simulation(prompt, model_name, agent_role, node)
@@ -211,64 +211,46 @@ class TreeQuestEngine:
         else:
             return "executor"
     
-    def _create_agent_simulation_prompt(self, node: TreeNode, initial_state: Dict[str, Any], agent_role: str) -> str:
-        """Create agent-specific simulation prompt"""
-        base_prompt = f"""
-        Task: {initial_state['task']}
-        Context: {json.dumps(initial_state['context'], indent=2)}
-        Current Depth: {node.depth}
-        Agent Role: {agent_role}
+    def _create_agent_simulation_prompt(self, node: TreeNode, task: str, context: Dict[str, Any]) -> str:
+        """Create prompt for agent simulation based on role and context"""
+        base_context = context.get("project_context") or context.get("project") or {}
         
-        """
-        
-        # Add role-specific instructions
-        if agent_role == "planner":
-            base_prompt += """
-            As a PLANNER agent, evaluate this state and provide a reward score (0.0 to 1.0) based on:
-            1. Strategic value and long-term impact
-            2. Feasibility and resource requirements
-            3. Alignment with overall objectives
+        # Include memory context for consistent behavior across providers
+        memory_summary = ""
+        try:
+            memory = context.get("memory", {})
+            facts = memory.get("facts", [])
+            prefs = memory.get("preferences", [])
+            tasks = memory.get("tasks", [])
             
-            Respond with only a number between 0.0 and 1.0.
-            """
-        elif agent_role == "analyzer":
-            base_prompt += """
-            As an ANALYZER agent, evaluate this state and provide a reward score (0.0 to 1.0) based on:
-            1. Data quality and completeness
-            2. Insight depth and relevance
-            3. Actionability of findings
-            
-            Respond with only a number between 0.0 and 1.0.
-            """
-        elif agent_role == "critic":
-            base_prompt += """
-            As a CRITIC agent, evaluate this state and provide a reward score (0.0 to 1.0) based on:
-            1. Quality and accuracy of analysis
-            2. Identification of potential issues
-            3. Constructive feedback value
-            
-            Respond with only a number between 0.0 and 1.0.
-            """
-        elif agent_role == "synthesizer":
-            base_prompt += """
-            As a SYNTHESIZER agent, evaluate this state and provide a reward score (0.0 to 1.0) based on:
-            1. Integration of multiple perspectives
-            2. Novel insight generation
-            3. Comprehensive understanding
-            
-            Respond with only a number between 0.0 and 1.0.
-            """
-        else:  # executor
-            base_prompt += """
-            As an EXECUTOR agent, evaluate this state and provide a reward score (0.0 to 1.0) based on:
-            1. Implementation feasibility
-            2. Resource efficiency
-            3. Execution success probability
-            
-            Respond with only a number between 0.0 and 1.0.
-            """
-        
-        return base_prompt
+            if facts or prefs or tasks:
+                memory_summary = "\n\nMemory Context:\n"
+                if facts:
+                    memory_summary += "- Facts: " + ", ".join([str(f.get("key", "unknown")) for f in facts[:5]]) + "\n"
+                if prefs:
+                    memory_summary += "- Preferences: " + ", ".join([str(p.get("key", "unknown")) for p in prefs[:5]]) + "\n"
+                if tasks:
+                    memory_summary += "- Active Tasks: " + ", ".join([str(t.get("key", "unknown")) for t in tasks[:5]]) + "\n"
+        except Exception:
+            pass
+
+        prompt = (
+            f"Role: {node.agent_role or 'general'}\n"
+            f"Task: {task}\n"
+            f"Project Context: {json.dumps(base_context)[:1200]}\n"
+            f"Conversation: {json.dumps(self._get_recent_conversation())[:1200]}\n"
+            f"{memory_summary}"
+        )
+        return prompt
+
+    def _get_recent_conversation(self) -> List[Dict[str, Any]]:
+        """Get recent conversation context for TreeQuest"""
+        try:
+            from src.core.conversation_manager import conversation_manager
+            recent_messages = conversation_manager.get_context_messages(limit=5)
+            return [msg.to_dict() for msg in recent_messages]
+        except Exception:
+            return []
     
     async def _execute_agent_simulation(self, prompt: str, model_name: str, agent_role: str, node: TreeNode) -> float:
         """Execute simulation using the specified agent and model"""

@@ -65,7 +65,7 @@ class ConversationManager:
         self.current_session_id = self._generate_session_id()
         self.conversation_history: List[Message] = []
         self.project_context: Optional[ProjectContext] = None
-        self.context_window = 10  # Number of messages to keep in active context
+        self.context_window = 12  # Slightly larger window for complex tasks
         
         # Session persistence
         self.session_file = self.session_dir / f"{self.current_session_id}.json"
@@ -231,6 +231,13 @@ class ConversationManager:
         if self.project_context:
             context['project'] = self.project_context.to_dict()
         
+        # Include persistent memory snapshot for consistent behavior across providers
+        try:
+            from src.core.memory_manager import memory_manager
+            context['memory'] = memory_manager.export_context()
+        except Exception:
+            context['memory'] = {'facts': [], 'preferences': [], 'tasks': []}
+
         return context
     
     def _save_session_state(self):

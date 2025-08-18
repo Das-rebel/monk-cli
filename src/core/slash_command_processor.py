@@ -16,6 +16,7 @@ from src.analyzers.analyzer_coordinator import EnhancedAnalyzerCoordinator
 from src.workspace.workspace_manager import WorkspaceManager
 from src.ai.treequest_engine import TreeQuestEngine, TreeQuestConfig
 from src.ai.model_registry import ModelRegistry, ModelRole, ModelObjective
+from src.core.memory_manager import memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,12 @@ class EnhancedSlashCommandProcessor:
         self.register_command("help", self._cmd_help, "Show available commands and context-aware help")
         self.register_command("clear", self._cmd_clear, "Clear conversation history")
         self.register_command("settings", self._cmd_settings, "Show/modify CLI settings")
+        
+        # Memory management commands
+        self.register_command("memory", self._cmd_memory, "Manage persistent memory (facts, preferences, tasks)")
+        self.register_command("remember", self._cmd_remember, "Add information to persistent memory")
+        self.register_command("forget", self._cmd_forget, "Remove information from persistent memory")
+        self.register_command("recall", self._cmd_recall, "Search and retrieve information from memory")
         
         # Enhanced AI agent commands
         self.register_command("agents", self._cmd_agents, "Manage AI agents and their roles")
@@ -156,6 +163,17 @@ class EnhancedSlashCommandProcessor:
         available_models = self.model_registry.get_available_models()
         
         response = "🤖 **Available AI Agents**\n\n"
+        # Show memory snapshot summary for transparency
+        mem = memory_manager.export_context(max_facts=5, max_prefs=5, max_tasks=5)
+        if mem['facts'] or mem['preferences'] or mem['tasks']:
+            response += "**Memory Snapshot (used across providers)**\n"
+            if mem['facts']:
+                response += f"  • Facts: {len(mem['facts'])}\n"
+            if mem['preferences']:
+                response += f"  • Preferences: {len(mem['preferences'])}\n"
+            if mem['tasks']:
+                response += f"  • Tasks: {len(mem['tasks'])}\n"
+            response += "\n"
         
         # Group by capabilities
         agents_by_role = {}
@@ -197,7 +215,8 @@ class EnhancedSlashCommandProcessor:
             "project_type": project_context.project_type,
             "objective": " ".join(args) if args else "Improve project quality and performance",
             "constraints": kwargs.get("constraints", "Time and resource efficient"),
-            "timeline": kwargs.get("timeline", "2-4 weeks")
+            "timeline": kwargs.get("timeline", "2-4 weeks"),
+            "memory": memory_manager.export_context(),
         }
         
         try:
@@ -701,6 +720,132 @@ class EnhancedSlashCommandProcessor:
                 return "❌ Not a git repository"
         except Exception as e:
             return f"❌ Error checking git diff: {e}"
+
+    # Memory Management Commands
+    async def _cmd_memory(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Show memory overview and statistics"""
+        try:
+            mem = memory_manager.export_context()
+            
+            response = "🧠 **Persistent Memory Overview**\n\n"
+            
+            # Facts
+            facts = mem.get('facts', [])
+            response += f"**Facts** ({len(facts)}):\n"
+            for fact in facts[:5]:
+                response += f"  • {fact.get('key', 'unknown')}: {str(fact.get('value', ''))[:100]}...\n"
+            if len(facts) > 5:
+                response += f"  ... and {len(facts) - 5} more\n"
+            
+            # Preferences
+            prefs = mem.get('preferences', [])
+            response += f"\n**Preferences** ({len(prefs)}):\n"
+            for pref in prefs[:5]:
+                response += f"  • {pref.get('key', 'unknown')}: {str(pref.get('value', ''))[:100]}...\n"
+            if len(prefs) > 5:
+                response += f"  ... and {len(prefs) - 5} more\n"
+            
+            # Tasks
+            tasks = mem.get('tasks', [])
+            response += f"\n**Active Tasks** ({len(tasks)}):\n"
+            for task in tasks[:5]:
+                response += f"  • {task.get('key', 'unknown')}: {str(task.get('value', ''))[:100]}...\n"
+            if len(tasks) > 5:
+                response += f"  ... and {len(tasks) - 5} more\n"
+            
+            response += f"\n💡 Use /remember to add, /recall to search, /forget to remove"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error accessing memory: {e}"
+
+    async def _cmd_remember(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Add information to persistent memory"""
+        if not args:
+            return "❌ Usage: /remember <key> value=<value> [type=<fact|preference|task>] [importance=<0.0-1.0>] [tags=<tag1,tag2>]"
+        
+        key = args[0]
+        value = kwargs.get('value')
+        if not value:
+            # Try to construct value from remaining args if no value= specified
+            value = ' '.join(args[1:]) if len(args) > 1 else ''
+        
+        memory_type = kwargs.get('type', 'fact')
+        importance = float(kwargs.get('importance', 0.6))
+        tags = kwargs.get('tags', '').split(',') if kwargs.get('tags') else []
+        
+        if not value:
+            return "❌ Please provide a value using value=<content> or as additional arguments"
+        
+        try:
+            if memory_type == 'fact':
+                item = memory_manager.add_fact(key, value, tags, importance)
+            elif memory_type == 'preference':
+                item = memory_manager.add_preference(key, value, tags, importance)
+            elif memory_type == 'task':
+                ttl = int(kwargs.get('ttl', 7 * 24 * 3600))  # Default 7 days
+                item = memory_manager.add_task_state(key, value, tags, importance, ttl)
+            else:
+                return f"❌ Invalid memory type: {memory_type}. Use: fact, preference, or task"
+            
+            return f"✅ Added to {memory_type} memory:\n**{key}**: {value}\nImportance: {importance}, Tags: {', '.join(tags) if tags else 'none'}"
+            
+        except Exception as e:
+            return f"❌ Error adding to memory: {e}"
+
+    async def _cmd_forget(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Remove information from persistent memory"""
+        if not args:
+            return "❌ Usage: /forget <key> [type=<fact|preference|task>]"
+        
+        key = args[0]
+        memory_type = kwargs.get('type', 'fact')
+        
+        try:
+            if memory_manager.remove(memory_type, key):
+                return f"✅ Removed {memory_type}: {key}"
+            else:
+                return f"❌ {memory_type.capitalize()} not found: {key}"
+                
+        except Exception as e:
+            return f"❌ Error removing from memory: {e}"
+
+    async def _cmd_recall(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Search and retrieve information from memory"""
+        if not args:
+            return "❌ Usage: /recall <query> [type=<fact|preference|task>] [limit=<number>]"
+        
+        query = ' '.join(args)
+        memory_type = kwargs.get('type')
+        limit = int(kwargs.get('limit', 10))
+        
+        try:
+            # Search by tags or content
+            kinds = [memory_type] if memory_type else ['fact', 'preference', 'task']
+            results = memory_manager.query(kinds=kinds, tags=[query], limit=limit)
+            
+            if not results:
+                # Try broader search
+                results = memory_manager.query(kinds=kinds, limit=limit)
+                # Filter by content matching
+                results = [r for r in results if query.lower() in str(r.value).lower() or query.lower() in r.key.lower()]
+            
+            if not results:
+                return f"🔍 No memory items found matching: {query}"
+            
+            response = f"🔍 **Memory Search Results for: {query}**\n\n"
+            
+            for item in results[:limit]:
+                response += f"**{item.kind.upper()}**: {item.key}\n"
+                response += f"  Value: {str(item.value)[:150]}...\n"
+                response += f"  Importance: {item.importance}, Tags: {', '.join(item.tags) if item.tags else 'none'}\n"
+                response += f"  Updated: {time.strftime('%Y-%m-%d %H:%M', time.localtime(item.updated_at))}\n\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error searching memory: {e}"
     
     async def execute_command(self, command: SlashCommand) -> Dict[str, Any]:
         """Execute a slash command with enhanced TreeQuest integration"""

@@ -49,9 +49,18 @@ class MonkCLI:
                 await self.slash_processor.initialize()
                 logger.info("Enhanced slash command processor initialized with TreeQuest")
             
-            # Load project context
-            await self.project_context_loader.load_project_context()
-            logger.info("Project context loaded successfully")
+            # Load project context with timeout and fallback
+            try:
+                # Try to load project context with timeout
+                context_task = self.project_context_loader.load_project_context()
+                context = await asyncio.wait_for(context_task, timeout=15.0)
+                logger.info("Project context loaded successfully")
+            except asyncio.TimeoutError:
+                logger.warning("Project context loading timed out, continuing without context")
+                context = None
+            except Exception as e:
+                logger.warning(f"Could not load project context: {e}, continuing without context")
+                context = None
             
             self.initialized = True
             return True
@@ -133,6 +142,41 @@ Examples:
         
         # Consider queries with 2+ complexity indicators as complex
         return complexity_score >= 2
+    
+    def _is_in_project_directory(self) -> bool:
+        """Check if current directory appears to be a project directory"""
+        current_dir = Path.cwd()
+        
+        # Check for common project indicators
+        project_indicators = [
+            'requirements.txt', 'setup.py', 'pyproject.toml', 'Pipfile',  # Python
+            'package.json', 'yarn.lock', 'package-lock.json',           # Node.js
+            'pom.xml', 'build.gradle', 'gradle.properties',             # Java
+            'Cargo.toml', 'Cargo.lock',                                 # Rust
+            'go.mod', 'go.sum',                                         # Go
+            'CMakeLists.txt', 'Makefile',                               # C++
+            'index.html', 'webpack.config.js', '.babelrc',              # Web
+            '.git', 'README.md', 'LICENSE'                              # General
+        ]
+        
+        return any((current_dir / indicator).exists() for indicator in project_indicators)
+    
+    def _get_project_guidance(self) -> str:
+        """Get guidance for users not in a project directory"""
+        if not self._is_in_project_directory():
+            return """
+⚠️  You're not in a project directory. For best results:
+
+📁 Navigate to your project directory:
+   cd /path/to/your/project
+
+🧘 Or run Monk CLI with specific context:
+   monk --treequest /agents
+   monk --treequest /plan objective="Your objective"
+
+💡 Monk CLI works best when you're inside a project directory!
+"""
+        return ""
     
     async def handle_query(self, query_text: str, args) -> str:
         """Handle a single query with full Phase 3 processing and TreeQuest integration"""
@@ -272,6 +316,11 @@ Examples:
         print("🤖 Monk CLI - Enhanced with TreeQuest AI Agents")
         print("=" * 70)
         
+        # Show project guidance if not in project directory
+        project_guidance = self._get_project_guidance()
+        if project_guidance:
+            print(project_guidance)
+        
         # Show context information
         context = conversation_manager.get_project_context()
         if context:
@@ -279,6 +328,8 @@ Examples:
             insights = self.project_context_loader.get_project_insights(context)
             for insight in insights[:3]:
                 print(f"   {insight}")
+        else:
+            print("📁 No project context available")
         
         # Show TreeQuest agent information
         if hasattr(self.slash_processor, 'model_registry') and self.slash_processor.model_registry:

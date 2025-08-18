@@ -125,9 +125,9 @@ class EnhancedSlashCommandProcessor:
         if not command_text:
             return SlashCommand("help", [], {}, input_text)
         
-        # Split command and arguments
+        # Split command and arguments - preserve the first word as the command name
         parts = command_text.split()
-        command_name = parts[0]
+        command_name = parts[0].lower()  # Convert to lowercase for consistency
         args = parts[1:] if len(parts) > 1 else []
         
         # Parse key=value arguments

@@ -86,7 +86,7 @@ Examples:
         
         parser.add_argument(
             'query',
-            nargs='?',
+            nargs='*',
             help='Query to process (optional for interactive mode)'
         )
         
@@ -393,7 +393,14 @@ Examples:
         
         # Handle direct query
         if args.query:
-            query_text = ' '.join(args.query)
+            # Join arguments properly, preserving slash commands
+            if len(args.query) == 1 and args.query[0].startswith('/'):
+                # Single slash command - use as-is
+                query_text = args.query[0]
+            else:
+                # Multiple arguments or non-slash command - join with spaces
+                query_text = ' '.join(args.query)
+            
             response = await self.handle_query(query_text, args)
             
             # Display response

@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 """
-TreeQuest AI Agent Integration Demo
-Demonstrates the enhanced Smart AI CLI with TreeQuest multi-agent capabilities
+TreeQuest AI Agent Demo for Monk CLI
+Demonstrates the enhanced TreeQuest integration with multi-agent capabilities
 """
 
 import asyncio
 import sys
 from pathlib import Path
 
-# Add project paths
-sys.path.append(str(Path(__file__).parent))
+# Add src to path
+sys.path.append(str(Path(__file__).parent / "src"))
+
+def print_header():
+    """Print demo header"""
+    print("🌟 Monk CLI - TreeQuest AI Agent Demo")
+    print("=" * 60)
+    print("🚀 TreeQuest AI Agent Integration Demo")
+    print("=" * 50)
 
 async def demo_treequest_agents():
     """Demo TreeQuest AI agent capabilities"""
-    print("🚀 TreeQuest AI Agent Integration Demo")
-    print("=" * 50)
+    print_header()
     
     try:
         # Import TreeQuest components
@@ -209,8 +215,7 @@ async def demo_interactive_commands():
 
 async def main():
     """Main demo function"""
-    print("🌟 Smart AI Enhanced CLI - TreeQuest AI Agent Demo")
-    print("=" * 60)
+    print_header()
     
     # Run main demo
     await demo_treequest_agents()

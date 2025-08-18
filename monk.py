@@ -1,98 +1,114 @@
 #!/usr/bin/env python3
 """
-Smart AI Enhanced CLI v3.0 - Claude-Style Interface with TreeQuest AI Agents
-Complete integration of all Phase 3 components with enhanced TreeQuest capabilities
+Monk CLI - Enhanced with TreeQuest AI Agents
+A high-performance, intelligent command-line interface for project analysis and development workflow enhancement.
 """
 
-import sys
-import os
 import asyncio
 import argparse
+import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 import logging
 import re
 
 # Add paths
-sys.path.append('/Users/Subho')
-sys.path.append('/Users/Subho/smart-ai-enhanced-modules')
 sys.path.append(str(Path(__file__).parent))
 
-# Import Phase 3 components
 from src.core.conversation_manager import conversation_manager
-from src.core.slash_command_processor import slash_processor
-from src.core.intelligent_router import intelligent_router
-from src.core.nl_command_parser import nl_parser
-from src.core.command_completion import command_completion
-from src.core.project_context_loader import project_context_loader
-from src.core.session_manager import session_manager
-from src.ui.rich_interface import RichCLI
-
-# Import existing backend
-try:
-    from smart_ai_backend import SmartAIBackend
-except ImportError as e:
-    print(f"❌ Import error: {e}")
-    SmartAIBackend = None
+from src.core.slash_command_processor import EnhancedSlashCommandProcessor
+from src.core.intelligent_router import IntelligentRouter
+from src.core.project_context_loader import ProjectContextLoader
+from src.core.nl_command_parser import NLCommandParser
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class SmartAIEnhancedV3:
+class MonkCLI:
     """
-    Enhanced Smart AI CLI with Claude-style interface, Phase 3 features, and TreeQuest AI agents
+    Monk CLI - Enhanced with TreeQuest AI Agents
+    High-performance, intelligent command-line interface
     """
     
     def __init__(self):
-        self.backend = SmartAIBackend() if SmartAIBackend else None
-        self.rich_cli = RichCLI()
-        self.is_interactive_mode = False
-        
-    async def initialize(self):
-        """Initialize all components including TreeQuest integration"""
+        self.backend = None
+        self.initialized = False
+    
+    async def initialize(self, args):
+        """Initialize Monk CLI components"""
         try:
-            # Start session with project context
-            await session_manager.start_session()
+            # Initialize core components
+            self.project_context_loader = ProjectContextLoader()
+            self.slash_processor = EnhancedSlashCommandProcessor()
+            self.intelligent_router = IntelligentRouter()
+            self.nl_parser = NLCommandParser()
             
-            # Initialize enhanced slash command processor with TreeQuest
-            await slash_processor.initialize()
-            logger.info("Enhanced slash command processor initialized with TreeQuest")
+            # Initialize TreeQuest if enabled
+            if args.treequest:
+                await self.slash_processor.initialize()
+                logger.info("Enhanced slash command processor initialized with TreeQuest")
             
-            # Load project context for current directory
-            try:
-                await project_context_loader.load_project_context()
-                logger.info("Project context loaded successfully")
-            except Exception as e:
-                logger.warning(f"Could not load project context: {e}")
+            # Load project context
+            await self.project_context_loader.load_project_context()
+            logger.info("Project context loaded successfully")
+            
+            self.initialized = True
+            return True
             
         except Exception as e:
-            logger.error(f"Initialization failed: {e}")
+            logger.error(f"Failed to initialize Monk CLI: {e}")
+            return False
     
     def create_parser(self):
-        """Create argument parser"""
+        """Create command line argument parser"""
         parser = argparse.ArgumentParser(
-            description="Smart AI Enhanced CLI v3.0 - Claude-Style Interface with TreeQuest AI Agents",
+            description="🧘 Monk CLI - Enhanced with TreeQuest AI Agents",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
 Examples:
-  smart-ai-enhanced.py                          # Interactive mode
-  smart-ai-enhanced.py "analyze this project"  # Direct query
-  smart-ai-enhanced.py /help                   # Slash command
-  smart-ai-enhanced.py /agents                 # Show AI agents
-  smart-ai-enhanced.py /plan                   # Create execution plan
-  smart-ai-enhanced.py /deep-analyze           # Multi-agent analysis
-  smart-ai-enhanced.py --chat                  # Force interactive mode
+  monk --treequest /agents                    # Show available AI agents
+  monk --treequest /plan objective="Improve security"  # Create execution plan
+  monk --treequest /deep-analyze path=src/   # Run comprehensive analysis
+  monk --treequest --chat                     # Interactive mode with TreeQuest
+  monk "How can I optimize my project?"      # Natural language query
             """
         )
         
-        parser.add_argument('query', nargs='*', help='Query or command to execute')
-        parser.add_argument('--chat', '-c', action='store_true', help='Interactive chat mode')
-        parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
-        parser.add_argument('--format', choices=['rich', 'plain', 'json'], default='rich', help='Output format')
-        parser.add_argument('--no-context', action='store_true', help='Disable project context loading')
-        parser.add_argument('--provider', help='Force specific AI provider')
-        parser.add_argument('--treequest', action='store_true', help='Enable TreeQuest AI agent features')
+        parser.add_argument(
+            'query',
+            nargs='?',
+            help='Query to process (optional for interactive mode)'
+        )
+        
+        parser.add_argument(
+            '--treequest',
+            action='store_true',
+            help='Enable TreeQuest AI agent integration'
+        )
+        
+        parser.add_argument(
+            '--chat',
+            action='store_true',
+            help='Enable interactive chat mode'
+        )
+        
+        parser.add_argument(
+            '--provider',
+            help='Force use of specific AI provider'
+        )
+        
+        parser.add_argument(
+            '--verbose',
+            action='store_true',
+            help='Enable verbose output'
+        )
+        
+        parser.add_argument(
+            '--debug',
+            action='store_true',
+            help='Enable debug mode'
+        )
         
         return parser
     
@@ -122,18 +138,18 @@ Examples:
         """Handle a single query with full Phase 3 processing and TreeQuest integration"""
         
         # Step 1: Check if it's a slash command
-        slash_command = slash_processor.parse_command(query_text)
+        slash_command = self.slash_processor.parse_command(query_text)
         
         if slash_command:
             # Execute slash command with TreeQuest integration
-            result = await slash_processor.execute_command(slash_command)
+            result = await self.slash_processor.execute_command(slash_command)
             
             if result["success"]:
                 response = result["data"]
                 
                 # Log interaction
                 conversation_manager.add_message("user", query_text)
-                conversation_manager.add_message("assistant", response, {"command_type": "slash", "treequest_enabled": True})
+                conversation_manager.add_message("assistant", response, {"command_type": "slash", "treequest_enabled": args.treequest})
                 
                 return response
             else:
@@ -145,13 +161,13 @@ Examples:
                 return error_msg
         
         # Step 2: Try natural language parsing
-        parsed_intent = await nl_parser.parse(query_text)
+        parsed_intent = await self.nl_parser.parse(query_text)
         
         if parsed_intent.command and parsed_intent.confidence > 0.7:
             # Execute parsed command
-            converted_command = slash_processor.parse_command(parsed_intent.command)
+            converted_command = self.slash_processor.parse_command(parsed_intent.command)
             if converted_command:
-                result = await slash_processor.execute_command(converted_command)
+                result = await self.slash_processor.execute_command(converted_command)
                 
                 if result["success"]:
                     response = f"🧠 Interpreted as: {parsed_intent.command}\n\n{result['data']}"
@@ -162,7 +178,7 @@ Examples:
                         "command_type": "nl_parsed",
                         "original_intent": parsed_intent.intent,
                         "parsed_command": parsed_intent.command,
-                        "treequest_enabled": True
+                        "treequest_enabled": args.treequest
                     })
                     
                     return response
@@ -179,7 +195,7 @@ Examples:
                     "project_context": conversation_manager.get_context_for_ai()
                 }
                 
-                result = await slash_processor.treequest_engine.solve(task, context)
+                result = await self.slash_processor.treequest_engine.solve(task, context)
                 
                 if "insights" in result:
                     response = f"🤖 **TreeQuest AI Response**\n\n{result['insights'].get('summary', 'No response generated')}"
@@ -192,7 +208,7 @@ Examples:
                     "provider": "treequest",
                     "routing_confidence": 1.0,
                     "query_type": "treequest_direct",
-                    "treequest_enabled": True
+                    "treequest_enabled": args.treequest
                 })
                 
                 return response
@@ -201,7 +217,7 @@ Examples:
                 # Fall back to regular routing if TreeQuest fails
                 pass
         
-        routing_decision = await intelligent_router.route_query(
+        routing_decision = await self.intelligent_router.route_query(
             query_text,
             conversation_manager.get_context_for_ai()
         )
@@ -209,7 +225,7 @@ Examples:
         provider = args.provider or routing_decision.primary_provider
         
         if args.verbose:
-            routing_explanation = intelligent_router.explain_routing(routing_decision)
+            routing_explanation = self.intelligent_router.explain_routing(routing_decision)
             print(routing_explanation)
         
         # Step 4: Process with AI provider
@@ -253,31 +269,29 @@ Examples:
     
     async def interactive_mode(self, args):
         """Enhanced interactive mode with all Phase 3 features and TreeQuest integration"""
-        print("🤖 Smart AI Enhanced v3.0 - Claude-Style Interface with TreeQuest AI Agents")
+        print("🤖 Monk CLI - Enhanced with TreeQuest AI Agents")
         print("=" * 70)
         
         # Show context information
         context = conversation_manager.get_project_context()
         if context:
             print(f"📁 Project: {context.project_type} at {context.project_path}")
-            insights = project_context_loader.get_project_insights(context)
+            insights = self.project_context_loader.get_project_insights(context)
             for insight in insights[:3]:
                 print(f"   {insight}")
         
         # Show TreeQuest agent information
-        if hasattr(slash_processor, 'model_registry') and slash_processor.model_registry:
-            available_models = slash_processor.model_registry.get_available_models()
+        if hasattr(self.slash_processor, 'model_registry') and self.slash_processor.model_registry:
+            available_models = self.slash_processor.model_registry.get_available_models()
             print(f"🤖 AI Agents: {len(available_models)} models available")
         
         print("\nType '/help' for commands, '/agents' for AI agent info, 'quit' to exit")
         print("-" * 70)
         
-        self.is_interactive_mode = True
-        
         while True:
             try:
                 # Get user input with auto-completion hints
-                user_input = input("\n💭 Smart AI> ").strip()
+                user_input = input("\n💭 Monk> ").strip()
                 
                 if user_input.lower() in ['quit', 'exit', 'q']:
                     print("👋 Goodbye!")
@@ -285,7 +299,7 @@ Examples:
                 
                 if not user_input:
                     # Show context-aware suggestions
-                    suggestions = await command_completion.complete_command("")
+                    suggestions = await self.slash_processor.command_completion.complete_command("")
                     if suggestions:
                         print("💡 Suggestions:")
                         for suggestion in suggestions[:5]:
@@ -296,14 +310,14 @@ Examples:
                 response = await self.handle_query(user_input, args)
                 
                 # Display response with rich formatting
-                if args.format == 'rich':
+                if args.verbose:
                     print(response)
                 else:
                     print(response)
                 
                 # Auto-save session periodically
                 if len(conversation_manager.conversation_history) % 10 == 0:
-                    await session_manager.auto_save_session()
+                    await self.slash_processor.session_manager.auto_save_session()
             
             except KeyboardInterrupt:
                 print("\n\n👋 Goodbye!")
@@ -324,7 +338,7 @@ Examples:
         args = parser.parse_args()
         
         # Initialize components
-        await self.initialize()
+        await self.initialize(args)
         
         # Handle direct query
         if args.query:
@@ -332,16 +346,7 @@ Examples:
             response = await self.handle_query(query_text, args)
             
             # Display response
-            if args.format == 'json':
-                import json
-                result = {
-                    "query": query_text,
-                    "response": response,
-                    "session_id": conversation_manager.current_session_id,
-                    "treequest_enabled": args.treequest
-                }
-                print(json.dumps(result, indent=2))
-            elif args.format == 'rich':
+            if args.verbose:
                 print(response)
             else:
                 print(response)
@@ -353,7 +358,7 @@ Examples:
 async def main():
     """Main entry point"""
     try:
-        cli = SmartAIEnhancedV3()
+        cli = MonkCLI()
         await cli.run()
     except KeyboardInterrupt:
         print("\n👋 Interrupted by user")

@@ -1,11 +1,13 @@
-# 🚀 Deployment Guide for Smart AI Enhanced CLI
+# 🚀 Deployment Guide for Monk CLI
+
+> **Complete deployment instructions for the TreeQuest AI agent system**
 
 ## 📋 **Quick Start**
 
 ### **1. Clone and Install**
 ```bash
-git clone https://github.com/yourusername/smart-ai-enhanced.git
-cd smart-ai-enhanced
+git clone https://github.com/yourusername/monk-cli.git
+cd monk-cli
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -20,7 +22,7 @@ export GOOGLE_API_KEY="your-google-key"
 
 ### **3. Test Installation**
 ```bash
-python3 smart_ai_enhanced_v3.py --treequest /agents
+python3 monk.py --treequest /agents
 ```
 
 ## 🔧 **Production Deployment**

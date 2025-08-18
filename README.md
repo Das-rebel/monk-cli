@@ -1,14 +1,14 @@
-# 🚀 Smart AI Enhanced CLI with TreeQuest AI Agents
+# 🧘 Monk CLI - Enhanced with TreeQuest AI Agents
 
 > **Enterprise-Grade AI Orchestration System with Multi-Agent Intelligence**
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/yourusername/smart-ai-enhanced)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/yourusername/monk-cli)
 
 ## 🌟 **Overview**
 
-Smart AI Enhanced CLI is a revolutionary command-line interface that combines the power of multiple AI agents with intelligent orchestration through the TreeQuest engine. This system provides enterprise-grade AI capabilities in a simple, intuitive CLI interface.
+Monk CLI is a revolutionary command-line interface that combines the power of multiple AI agents with intelligent orchestration through the TreeQuest engine. This system provides enterprise-grade AI capabilities in a simple, intuitive CLI interface.
 
 ### **🎯 Key Features**
 
@@ -23,7 +23,7 @@ Smart AI Enhanced CLI is a revolutionary command-line interface that combines th
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Smart AI Enhanced CLI                    │
+│                    Monk CLI                                 │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
 │  │   Planner   │  │  Analyzer   │  │   Critic    │        │
@@ -55,8 +55,8 @@ Smart AI Enhanced CLI is a revolutionary command-line interface that combines th
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/smart-ai-enhanced.git
-cd smart-ai-enhanced
+git clone https://github.com/yourusername/monk-cli.git
+cd monk-cli
 
 # Install dependencies
 pip install -r requirements.txt
@@ -67,23 +67,23 @@ export ANTHROPIC_API_KEY="your-anthropic-key-here"
 export GOOGLE_API_KEY="your-google-key-here"
 
 # Run the enhanced CLI
-python3 smart_ai_enhanced_v3.py --treequest /agents
+python3 monk.py --treequest /agents
 ```
 
 ### **Quick Commands**
 
 ```bash
 # Show all available AI agents
-smart-ai /agents
+monk --treequest /agents
 
 # Create execution plan
-smart-ai /plan objective="Improve project security"
+monk --treequest /plan objective="Improve project security"
 
 # Run comprehensive analysis
-smart-ai /deep-analyze path=src/ depth=comprehensive
+monk --treequest /deep-analyze path=src/ depth=comprehensive
 
 # Interactive mode
-smart-ai --chat
+monk --treequest --chat
 ```
 
 ## 🤖 **AI Agents**
@@ -152,7 +152,7 @@ export MISTRAL_API_KEY="your-mistral-key"
 ### **Project Planning**
 
 ```bash
-smart-ai /plan objective="Implement microservices architecture"
+monk --treequest /plan objective="Implement microservices architecture"
 ```
 
 **Output:**
@@ -172,7 +172,7 @@ smart-ai /plan objective="Implement microservices architecture"
 ### **Code Analysis**
 
 ```bash
-smart-ai /deep-analyze path=src/ depth=comprehensive
+monk --treequest /deep-analyze path=src/ depth=comprehensive
 ```
 
 **Output:**
@@ -194,13 +194,13 @@ smart-ai /deep-analyze path=src/ depth=comprehensive
 ### **Code Quality Critique**
 
 ```bash
-smart-ai /critique path=src/ focus="security and performance"
+monk --treequest /critique path=src/ focus="security and performance"
 ```
 
 ## 🏗️ **Project Structure**
 
 ```
-smart-ai-enhanced/
+monk-cli/
 ├── src/
 │   ├── ai/
 │   │   ├── treequest_engine.py      # Core TreeQuest engine
@@ -219,7 +219,7 @@ smart-ai-enhanced/
 │       └── rich_interface.py        # Rich terminal interface
 ├── config/
 │   └── treequest.yaml               # TreeQuest configuration
-├── smart_ai_enhanced_v3.py          # Main CLI entry point
+├── monk.py          # Main CLI entry point
 ├── treequest_demo.py                 # Demo script
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # This file
@@ -260,16 +260,16 @@ python3 treequest_demo.py
 
 ```bash
 # Test AI agents
-smart-ai /agents
+monk --treequest /agents
 
 # Test planning
-smart-ai /plan objective="Test planning"
+monk --treequest /plan objective="Test planning"
 
 # Test analysis
-smart-ai /deep-analyze path=. depth=deep
+monk --treequest /deep-analyze path=. depth=deep
 
 # Test interactive mode
-smart-ai --chat
+monk --treequest --chat
 ```
 
 ## 📊 **Performance Metrics**
@@ -296,8 +296,8 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/smart-ai-enhanced.git
-cd smart-ai-enhanced
+git clone https://github.com/yourusername/monk-cli.git
+cd monk-cli
 
 # Create virtual environment
 python3 -m venv venv
@@ -324,9 +324,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 **Support**
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/smart-ai-enhanced/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/smart-ai-enhanced/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/smart-ai-enhanced/wiki)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/monk-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/monk-cli/discussions)
+- **Documentation**: [Wiki](https://github.com/yourusername/monk-cli/wiki)
 
 ## 🚀 **Roadmap**
 

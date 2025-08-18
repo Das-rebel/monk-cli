@@ -1,6 +1,6 @@
-# 🧘 Monk CLI - Enhanced with TreeQuest AI Agents
+# 🧘 Monk CLI - Intelligent Query Routing with TreeQuest AI Agents
 
-> **Enterprise-Grade AI Orchestration System with Multi-Agent Intelligence**
+> **Enterprise-Grade AI Orchestration System with Smart Query Routing and Multi-Agent Intelligence**
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -8,15 +8,15 @@
 
 ## 🌟 **Overview**
 
-Monk CLI is a revolutionary command-line interface that combines the power of multiple AI agents with intelligent orchestration through the TreeQuest engine. This system provides enterprise-grade AI capabilities in a simple, intuitive CLI interface.
+Monk CLI is a revolutionary command-line interface that combines **Intelligent Query Routing** with the power of multiple AI agents through the TreeQuest engine. This system automatically routes your queries to the optimal AI provider based on query type, complexity, cost, and performance requirements, providing enterprise-grade AI capabilities with unmatched efficiency.
 
 ### **🎯 Key Features**
 
+- **🧠 Intelligent Query Routing**: Smart routing to optimal AI providers based on query analysis
 - **🤖 Multi-Agent AI System**: Planner, Analyzer, Critic, Synthesizer, and Executor agents
 - **🧠 TreeQuest Engine**: Adaptive Branching Monte Carlo Tree Search for LLM orchestration
-- **🔍 Intelligent Routing**: Smart query routing with cost and performance optimization
+- **💰 Cost Optimization**: Real-time cost tracking and intelligent model selection
 - **📊 Enhanced Analytics**: Cross-tool intelligence and correlation
-- **💰 Cost Optimization**: Real-time cost tracking and model selection
 - **🚀 High Performance**: Async processing with intelligent caching
 
 ## 🏗️ **Architecture**
@@ -42,6 +42,41 @@ Monk CLI is a revolutionary command-line interface that combines the power of mu
 │              (Multi-Provider AI Models)                   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## 🧠 **Intelligent Query Routing**
+
+Monk CLI's **Intelligent Query Routing** system automatically analyzes your queries and routes them to the optimal AI provider, ensuring the best performance, cost efficiency, and results for every interaction.
+
+### **🔄 How It Works**
+
+1. **Query Analysis**: Analyzes query type, complexity, and requirements
+2. **Provider Selection**: Evaluates available AI providers based on:
+   - **Query Type**: Code analysis, planning, critique, synthesis
+   - **Complexity**: Simple vs. complex multi-step tasks
+   - **Cost**: Token usage and provider pricing
+   - **Performance**: Response time and quality requirements
+   - **Specialization**: Provider strengths for specific tasks
+
+3. **Smart Routing**: Routes to the optimal provider using advanced algorithms
+4. **Fallback Handling**: Automatically switches providers if needed
+
+### **🎯 Routing Intelligence**
+
+| Query Type | Optimal Provider | Reasoning |
+|------------|------------------|-----------|
+| **Code Analysis** | Claude-3-Sonnet | Superior code understanding |
+| **Planning Tasks** | GPT-4o | Excellent strategic thinking |
+| **Creative Writing** | Claude-3-Opus | Best creative capabilities |
+| **Quick Answers** | GPT-4o-mini | Fast, cost-effective |
+| **Complex Reasoning** | Claude-3-Opus | Deep analytical thinking |
+| **TreeQuest Tasks** | Multi-Agent | Orchestrated AI collaboration |
+
+### **💰 Cost Optimization**
+
+- **Real-time Cost Tracking**: Monitor token usage and costs
+- **Provider Selection**: Choose cost-effective providers for simple tasks
+- **Quality vs. Cost**: Balance between performance and expense
+- **Usage Analytics**: Track spending patterns and optimize usage
 
 ## 🚀 **Quick Start**
 
@@ -76,14 +111,30 @@ python3 monk.py --treequest /agents
 # Show all available AI agents
 monk --treequest /agents
 
-# Create execution plan
+# Create execution plan (automatically routed to best planning provider)
 monk --treequest /plan objective="Improve project security"
 
-# Run comprehensive analysis
+# Run comprehensive analysis (intelligently routed for optimal performance)
 monk --treequest /deep-analyze path=src/ depth=comprehensive
 
-# Interactive mode
+# Interactive mode with intelligent routing
 monk --treequest --chat
+```
+
+### **Intelligent Routing Examples**
+
+```bash
+# Simple query - automatically routed to cost-effective provider
+monk "What is Python?"
+
+# Complex analysis - routed to high-performance provider
+monk "Analyze this codebase for security vulnerabilities and suggest improvements"
+
+# Planning task - routed to strategic thinking provider
+monk "Create a project roadmap for implementing microservices architecture"
+
+# Code review - routed to code-specialized provider
+monk "Review this Python function for best practices and optimization"
 ```
 
 ## 🤖 **AI Agents**
@@ -203,37 +254,50 @@ monk --treequest /critique path=src/ focus="security and performance"
 monk-cli/
 ├── src/
 │   ├── ai/
-│   │   ├── treequest_engine.py      # Core TreeQuest engine
+│   │   ├── treequest_engine.py      # TreeQuest AI orchestration
 │   │   └── model_registry.py        # AI model management
 │   ├── core/
+│   │   ├── intelligent_router.py    # 🧠 Intelligent Query Routing
 │   │   ├── slash_command_processor.py # Enhanced slash commands
-│   │   ├── intelligent_router.py    # Smart query routing
-│   │   └── conversation_manager.py  # Conversation management
+│   │   ├── conversation_manager.py  # Conversation management
+│   │   └── project_context_loader.py # Project context
 │   ├── analyzers/
-│   │   ├── analyzer_coordinator.py  # Enhanced analyzer coordination
-│   │   ├── github_analyzer.py       # GitHub integration
-│   │   ├── docker_optimizer.py      # Docker analysis
-│   │   ├── npm_manager.py           # NPM package analysis
-│   │   └── git_analyzer.py          # Git repository analysis
+│   │   ├── analyzer_coordinator.py  # Analysis orchestration
+│   │   ├── github_analyzer.py       # GitHub analysis
+│   │   ├── docker_optimizer.py      # Docker optimization
+│   │   └── npm_manager.py           # NPM package analysis
 │   └── ui/
 │       └── rich_interface.py        # Rich terminal interface
 ├── config/
 │   └── treequest.yaml               # TreeQuest configuration
-├── monk.py          # Main CLI entry point
-├── treequest_demo.py                 # Demo script
+├── monk.py                          # Main CLI entry point
+├── treequest_demo.py                # Demo script
 ├── requirements.txt                  # Python dependencies
-└── README.md                         # This file
+├── setup_github.sh                  # GitHub setup automation
+└── docs/                            # Documentation
 ```
 
-## 🔍 **Advanced Features**
+## 🚀 **Advanced Features**
 
-### **Intelligent Query Routing**
+### **🧠 Intelligent Query Routing System**
 
-The system automatically routes queries to the most appropriate AI agent:
+Monk CLI's routing system automatically determines the best AI provider for each query:
 
-- **Complex queries** → TreeQuest with multi-agent collaboration
-- **Simple queries** → Direct AI provider response
-- **Specialized tasks** → Role-specific agents
+- **Automatic Provider Selection**: Routes queries to optimal AI providers
+- **Cost-Aware Routing**: Balances quality and cost for each task
+- **Performance Optimization**: Selects providers based on speed requirements
+- **Specialization Matching**: Routes to providers best suited for specific tasks
+- **Fallback Handling**: Automatically switches providers if needed
+
+### **🤖 Multi-Agent AI Orchestration**
+
+The TreeQuest engine coordinates multiple AI agents:
+
+- **Planner Agent**: Creates strategic execution plans
+- **Analyzer Agent**: Performs deep code and project analysis
+- **Critic Agent**: Provides quality assurance and feedback
+- **Synthesizer Agent**: Combines insights from multiple sources
+- **Executor Agent**: Implements suggested changes and optimizations
 
 ### **Cost Optimization**
 
@@ -250,13 +314,23 @@ The system automatically routes queries to the most appropriate AI agent:
 
 ## 🧪 **Testing**
 
-### **Run the Demo**
+### **Test Intelligent Query Routing**
 
 ```bash
-python3 treequest_demo.py
+# Test simple query routing
+monk "What is the capital of France?"
+
+# Test complex analysis routing
+monk "Analyze this project structure and suggest improvements"
+
+# Test planning task routing
+monk "Create a development timeline for this feature"
+
+# Test code review routing
+monk "Review this function for best practices"
 ```
 
-### **Test Individual Commands**
+### **Test AI Agents**
 
 ```bash
 # Test AI agents

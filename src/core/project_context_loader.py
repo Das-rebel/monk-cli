@@ -285,10 +285,38 @@ class ProjectContextLoader:
         
         # File count
         try:
-            file_count = len([f for f in project_dir.rglob('*') if f.is_file() and not any(part.startswith('.') for part in f.parts)])
-            summary_parts.append(f"{file_count} files")
+            # Limit search depth and add timeout to prevent hanging
+            file_count = 0
+            max_files = 1000  # Limit to prevent hanging
+            search_depth = 3   # Limit directory depth
+            
+            for depth in range(search_depth):
+                if file_count >= max_files:
+                    break
+                for item in project_dir.iterdir():
+                    if item.is_file() and not any(part.startswith('.') for part in item.parts):
+                        file_count += 1
+                        if file_count >= max_files:
+                            break
+                    elif item.is_dir() and depth < search_depth - 1:
+                        # Recursively count files in subdirectories (limited depth)
+                        try:
+                            for subitem in item.rglob('*'):
+                                if subitem.is_file() and not any(part.startswith('.') for part in subitem.parts):
+                                    file_count += 1
+                                    if file_count >= max_files:
+                                        break
+                            if file_count >= max_files:
+                                break
+                        except:
+                            pass  # Skip problematic directories
+            
+            if file_count >= max_files:
+                summary_parts.append(f"{file_count}+ files")
+            else:
+                summary_parts.append(f"{file_count} files")
         except:
-            pass
+            summary_parts.append("files (count unavailable)")
         
         # Key characteristics
         if 'README.md' in relevant_files:
@@ -311,7 +339,17 @@ class ProjectContextLoader:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            stdout, stderr = await process.communicate()
+            
+            # Add timeout to prevent hanging
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10.0)
+            except asyncio.TimeoutError:
+                process.terminate()
+                return {
+                    'returncode': -1,
+                    'stdout': '',
+                    'stderr': 'Command timed out'
+                }
             
             return {
                 'returncode': process.returncode,

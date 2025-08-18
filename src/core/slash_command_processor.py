@@ -81,6 +81,11 @@ class EnhancedSlashCommandProcessor:
         self.register_command("forget", self._cmd_forget, "Remove information from persistent memory")
         self.register_command("recall", self._cmd_recall, "Search and retrieve information from memory")
         
+        # Plugin management commands
+        self.register_command("plugins", self._cmd_plugins, "List and manage Monk CLI plugins")
+        self.register_command("plugin", self._cmd_plugin, "Plugin management operations")
+        self.register_command("create-plugin", self._cmd_create_plugin, "Create a new plugin project")
+        
         # Enhanced AI agent commands
         self.register_command("agents", self._cmd_agents, "Manage AI agents and their roles")
         self.register_command("plan", self._cmd_plan, "Create execution plan using TreeQuest planner agent")
@@ -846,6 +851,264 @@ class EnhancedSlashCommandProcessor:
             
         except Exception as e:
             return f"❌ Error searching memory: {e}"
+
+    # Plugin Management Commands
+    async def _cmd_plugins(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """List and manage Monk CLI plugins"""
+        try:
+            from src.core.plugins import plugin_registry
+            
+            # Get plugin registry summary
+            summary = plugin_registry.get_registry_summary()
+            
+            response = "🔌 **Monk CLI Plugin Registry**\n\n"
+            
+            # Plugin counts
+            response += f"**Total Plugins**: {summary['total_plugins']}\n"
+            response += f"**Enabled**: {summary['enabled_plugins']}\n"
+            response += f"**Disabled**: {summary['disabled_plugins']}\n"
+            response += f"**Errors**: {summary['error_plugins']}\n\n"
+            
+            # Plugin types
+            response += "**Plugin Types**:\n"
+            for ptype, count in summary['plugin_types'].items():
+                response += f"  • {ptype.title()}: {count}\n"
+            
+            # Discovery paths
+            response += f"\n**Discovery Paths**:\n"
+            for path in summary['discovery_paths'][:3]:  # Show first 3
+                response += f"  • {path}\n"
+            if len(summary['discovery_paths']) > 3:
+                response += f"  ... and {len(summary['discovery_paths']) - 3} more\n"
+            
+            response += f"\n💡 Use /plugin <operation> for specific plugin management"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error accessing plugin registry: {e}"
+
+    async def _cmd_plugin(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Plugin management operations"""
+        if not args:
+            return "❌ Usage: /plugin <operation> [plugin_name] [options]\n\nOperations:\n  list - List all plugins\n  info <name> - Get plugin info\n  enable <name> - Enable plugin\n  disable <name> - Disable plugin\n  reload <name> - Reload plugin\n  test <name> - Test plugin"
+        
+        operation = args[0].lower()
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            if operation == "list":
+                return await self._cmd_plugin_list(args[1:], kwargs)
+            elif operation == "info":
+                return await self._cmd_plugin_info(args[1:], kwargs)
+            elif operation == "enable":
+                return await self._cmd_plugin_enable(args[1:], kwargs)
+            elif operation == "disable":
+                return await self._cmd_plugin_disable(args[1:], kwargs)
+            elif operation == "reload":
+                return await self._cmd_plugin_reload(args[1:], kwargs)
+            elif operation == "test":
+                return await self._cmd_plugin_test(args[1:], kwargs)
+            else:
+                return f"❌ Unknown plugin operation: {operation}"
+                
+        except Exception as e:
+            return f"❌ Error in plugin operation: {e}"
+
+    async def _cmd_plugin_list(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """List all plugins with details"""
+        try:
+            from src.core.plugins import plugin_registry
+            
+            plugins = list(plugin_registry.plugins.values())
+            if not plugins:
+                return "📭 No plugins found in registry"
+            
+            response = "🔌 **Available Plugins**\n\n"
+            
+            for plugin in plugins:
+                status_emoji = {
+                    "enabled": "✅",
+                    "disabled": "❌", 
+                    "error": "⚠️",
+                    "loading": "⏳",
+                    "executing": "🔄",
+                    "completed": "✅"
+                }.get(plugin.status.value, "❓")
+                
+                response += f"{status_emoji} **{plugin.__class__.__name__}**\n"
+                
+                if plugin.metadata:
+                    response += f"  Version: {plugin.metadata.version}\n"
+                    response += f"  Type: {plugin.metadata.plugin_type.value.title()}\n"
+                    response += f"  Author: {plugin.metadata.author}\n"
+                    response += f"  Description: {plugin.metadata.description[:100]}...\n"
+                
+                response += f"  Status: {plugin.status.value}\n"
+                response += f"  Executions: {plugin.execution_count}\n"
+                response += f"  Errors: {plugin.error_count}\n\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error listing plugins: {e}"
+
+    async def _cmd_plugin_info(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Get detailed information about a specific plugin"""
+        if not args:
+            return "❌ Usage: /plugin info <plugin_name>"
+        
+        plugin_name = args[0]
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            info = plugin_registry.get_plugin_info(plugin_name)
+            if not info:
+                return f"❌ Plugin not found: {plugin_name}"
+            
+            response = f"🔌 **Plugin Info: {plugin_name}**\n\n"
+            
+            # Basic info
+            response += f"**Status**: {info['status']}\n"
+            
+            # Performance metrics
+            perf = info['performance']
+            response += f"**Performance**:\n"
+            response += f"  • Executions: {perf['execution_count']}\n"
+            response += f"  • Errors: {perf['error_count']}\n"
+            response += f"  • Uptime: {perf['uptime']:.1f}s\n"
+            
+            # Metadata
+            if 'metadata' in info:
+                meta = info['metadata']
+                response += f"\n**Metadata**:\n"
+                response += f"  • Version: {meta['version']}\n"
+                response += f"  • Type: {meta['plugin_type'].title()}\n"
+                response += f"  • Author: {meta['author']}\n"
+                response += f"  • Description: {meta['description']}\n"
+                response += f"  • Dependencies: {', '.join(meta['dependencies']) if meta['dependencies'] else 'None'}\n"
+                response += f"  • Tags: {', '.join(meta['tags']) if meta['tags'] else 'None'}\n"
+                response += f"  • Memory Access: {', '.join(meta['memory_access']) if meta['memory_access'] else 'None'}\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error getting plugin info: {e}"
+
+    async def _cmd_plugin_enable(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Enable a plugin"""
+        if not args:
+            return "❌ Usage: /plugin enable <plugin_name>"
+        
+        plugin_name = args[0]
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            if plugin_registry.enable_plugin(plugin_name):
+                return f"✅ Enabled plugin: {plugin_name}"
+            else:
+                return f"❌ Failed to enable plugin: {plugin_name}"
+                
+        except Exception as e:
+            return f"❌ Error enabling plugin: {e}"
+
+    async def _cmd_plugin_disable(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Disable a plugin"""
+        if not args:
+            return "❌ Usage: /plugin disable <plugin_name>"
+        
+        plugin_name = args[0]
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            if plugin_registry.disable_plugin(plugin_name):
+                return f"✅ Disabled plugin: {plugin_name}"
+            else:
+                return f"❌ Failed to disable plugin: {plugin_name}"
+                
+        except Exception as e:
+            return f"❌ Error disabling plugin: {e}"
+
+    async def _cmd_plugin_reload(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Reload a plugin"""
+        if not args:
+            return "❌ Usage: /plugin reload <plugin_name>"
+        
+        plugin_name = args[0]
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            # Unload and reload
+            if plugin_registry.unload_plugin(plugin_name):
+                if plugin_registry.load_plugin(plugin_name):
+                    return f"✅ Reloaded plugin: {plugin_name}"
+                else:
+                    return f"❌ Failed to reload plugin: {plugin_name}"
+            else:
+                return f"❌ Failed to unload plugin: {plugin_name}"
+                
+        except Exception as e:
+            return f"❌ Error reloading plugin: {e}"
+
+    async def _cmd_plugin_test(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Test a plugin"""
+        if not args:
+            return "❌ Usage: /plugin test <plugin_name>"
+        
+        plugin_name = args[0]
+        
+        try:
+            from src.core.plugins import plugin_registry
+            
+            plugin = plugin_registry.get_plugin(plugin_name)
+            if not plugin:
+                return f"❌ Plugin not found: {plugin_name}"
+            
+            # Test plugin execution
+            try:
+                result = plugin.execute("test", ["test_arg"], {"test_key": "test_value"})
+                return f"✅ Plugin test successful: {plugin_name}\nResult: {result[:200]}..."
+            except Exception as e:
+                return f"❌ Plugin test failed: {plugin_name}\nError: {e}"
+                
+        except Exception as e:
+            return f"❌ Error testing plugin: {e}"
+
+    async def _cmd_create_plugin(self, args: List[str], kwargs: Dict[str, Any]) -> str:
+        """Create a new plugin project"""
+        if not args:
+            return "❌ Usage: /create-plugin <plugin_name> [type=<command|analyzer|integration>] [author=<name>] [description=<text>]"
+        
+        plugin_name = args[0]
+        plugin_type = kwargs.get('type', 'command')
+        author = kwargs.get('author', 'Unknown')
+        description = kwargs.get('description', f'A {plugin_type} plugin for Monk CLI')
+        dependencies = kwargs.get('dependencies', '').split(',') if kwargs.get('dependencies') else []
+        
+        try:
+            from src.core.plugins.scaffold import PluginScaffolder
+            
+            scaffolder = PluginScaffolder()
+            success = scaffolder.create_plugin(
+                plugin_name=plugin_name,
+                plugin_type=plugin_type,
+                author=author,
+                description=description,
+                dependencies=dependencies
+            )
+            
+            if success:
+                return f"✅ Successfully created plugin: {plugin_name}\n\nNext steps:\n1. cd {plugin_name}\n2. pip install -e .\n3. monk plugin test {plugin_name}"
+            else:
+                return f"❌ Failed to create plugin: {plugin_name}"
+                
+        except Exception as e:
+            return f"❌ Error creating plugin: {e}"
     
     async def execute_command(self, command: SlashCommand) -> Dict[str, Any]:
         """Execute a slash command with enhanced TreeQuest integration"""

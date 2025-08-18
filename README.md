@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/yourusername/monk-cli)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/Das-rebel/monk-cli)
 
 ## 🌟 **Overview**
 
@@ -55,7 +55,7 @@ Monk CLI is a revolutionary command-line interface that combines the power of mu
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/monk-cli.git
+git clone https://github.com/Das-rebel/monk-cli.git
 cd monk-cli
 
 # Install dependencies
@@ -296,7 +296,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/monk-cli.git
+git clone https://github.com/Das-rebel/monk-cli.git
 cd monk-cli
 
 # Create virtual environment
@@ -324,9 +324,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 **Support**
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/monk-cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/monk-cli/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/monk-cli/wiki)
+- **Issues**: [GitHub Issues](https://github.com/Das-rebel/monk-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Das-rebel/monk-cli/discussions)
+- **Documentation**: [Wiki](https://github.com/Das-rebel/monk-cli/wiki)
 
 ## 🚀 **Roadmap**
 

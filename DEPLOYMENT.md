@@ -6,7 +6,7 @@
 
 ### **1. Clone and Install**
 ```bash
-git clone https://github.com/yourusername/monk-cli.git
+git clone https://github.com/Das-rebel/monk-cli.git
 cd monk-cli
 python3 -m venv venv
 source venv/bin/activate

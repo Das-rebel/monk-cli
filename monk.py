@@ -20,6 +20,16 @@ from src.core.slash_command_processor import EnhancedSlashCommandProcessor
 from src.core.intelligent_router import IntelligentRouter
 from src.core.project_context_loader import ProjectContextLoader
 from src.core.nl_command_parser import NLCommandParser
+from src.core.memory_manager import MemoryManager
+
+# Enhanced TreeQuest imports
+try:
+    from src.ai.enhanced_treequest import EnhancedTreeQuestEngine, EnhancedTreeQuestConfig
+    from src.ai.model_registry import ModelRegistry
+    ENHANCED_TREEQUEST_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Enhanced TreeQuest not available: {e}")
+    ENHANCED_TREEQUEST_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +44,9 @@ class MonkCLI:
     def __init__(self):
         self.backend = None
         self.initialized = False
+        self.enhanced_treequest = None
+        self.memory_manager = None
+        self.model_registry = None
     
     async def initialize(self, args):
         """Initialize Monk CLI components"""
@@ -43,11 +56,44 @@ class MonkCLI:
             self.slash_processor = EnhancedSlashCommandProcessor()
             self.intelligent_router = IntelligentRouter()
             self.nl_parser = NLCommandParser()
+            self.memory_manager = MemoryManager()
             
-            # Initialize TreeQuest if enabled
-            if args.treequest:
+            # Initialize Enhanced TreeQuest if available and enabled
+            if ENHANCED_TREEQUEST_AVAILABLE and (args.enhanced or args.treequest):
+                logger.info("Initializing Enhanced TreeQuest system...")
+                
+                # Initialize model registry
+                self.model_registry = ModelRegistry()
+                
+                # Configure enhanced TreeQuest
+                config = EnhancedTreeQuestConfig(
+                    max_depth=3,
+                    branching_factor=4,
+                    rollout_budget=32,
+                    cost_cap_usd=0.50,
+                    timeout_seconds=120,
+                    memory_guided=True,
+                    adaptive_rewards=True,
+                    agent_specialization=True,
+                    performance_tracking=True,
+                    learning_enabled=True
+                )
+                
+                # Initialize enhanced TreeQuest engine
+                self.enhanced_treequest = EnhancedTreeQuestEngine(
+                    config, self.memory_manager, self.model_registry
+                )
+                
+                logger.info("✅ Enhanced TreeQuest system initialized with memory and learning capabilities")
+                
+            # Initialize TreeQuest if enabled but enhanced not available
+            elif args.treequest:
                 await self.slash_processor.initialize()
-                logger.info("Enhanced slash command processor initialized with TreeQuest")
+                logger.info("TreeQuest initialized (basic mode)")
+            
+            # Standard initialization
+            else:
+                logger.info("Monk CLI initialized in standard mode")
             
             # Load project context with timeout and fallback
             try:
@@ -119,6 +165,12 @@ Examples:
             help='Enable debug mode'
         )
         
+        parser.add_argument(
+            '--enhanced',
+            action='store_true',
+            help='Enable Enhanced TreeQuest with memory and learning (requires deployment)'
+        )
+        
         return parser
     
     def _is_complex_query(self, query: str) -> bool:
@@ -178,6 +230,90 @@ Examples:
 """
         return ""
     
+    def _classify_query_type(self, query: str) -> str:
+        """Classify the type of query for enhanced processing"""
+        query_lower = query.lower()
+        
+        patterns = {
+            'code_analysis': ['analyze code', 'review code', 'code review', 'bugs', 'issues'],
+            'architecture_design': ['architecture', 'design system', 'structure', 'patterns'],
+            'planning': ['plan', 'strategy', 'roadmap', 'timeline', 'schedule'],
+            'optimization': ['optimize', 'improve', 'performance', 'efficiency'],
+            'security': ['security', 'vulnerability', 'secure', 'auth'],
+            'documentation': ['document', 'explain', 'describe'],
+            'troubleshooting': ['debug', 'fix', 'solve', 'error', 'problem']
+        }
+        
+        for query_type, keywords in patterns.items():
+            if any(keyword in query_lower for keyword in keywords):
+                return query_type
+        
+        return 'general'
+    
+    def _calculate_query_complexity(self, query: str) -> float:
+        """Calculate query complexity score (0.0 to 1.0)"""
+        complexity_factors = {
+            'length': len(query.split()) / 50,  # Normalize by 50 words
+            'technical_terms': len([word for word in query.lower().split() 
+                                  if word in ['api', 'database', 'architecture', 'algorithm', 'performance', 'security']]) / 10,
+            'question_complexity': len([word for word in query.lower().split() 
+                                      if word in ['how', 'why', 'what', 'when', 'where', 'which']]) / 5,
+            'action_verbs': len([word for word in query.lower().split() 
+                               if word in ['analyze', 'optimize', 'design', 'implement', 'review', 'compare']]) / 5
+        }
+        
+        # Weighted complexity score
+        complexity = (
+            0.2 * min(1.0, complexity_factors['length']) +
+            0.3 * min(1.0, complexity_factors['technical_terms']) +
+            0.2 * min(1.0, complexity_factors['question_complexity']) +
+            0.3 * min(1.0, complexity_factors['action_verbs'])
+        )
+        
+        return max(0.1, min(1.0, complexity))
+    
+    def _format_enhanced_response(self, result: Dict[str, Any], verbose: bool = False) -> str:
+        """Format enhanced TreeQuest response for display"""
+        response_parts = []
+        
+        # Main response
+        if 'response' in result:
+            response_parts.append(f"🧠 **Enhanced TreeQuest Response**\n\n{result['response']}")
+        elif 'insights' in result and 'summary' in result['insights']:
+            response_parts.append(f"🧠 **Enhanced TreeQuest Response**\n\n{result['insights']['summary']}")
+        else:
+            response_parts.append("🧠 **Enhanced TreeQuest Response**\n\nQuery processed successfully.")
+        
+        # Agent assignment info
+        agent_info = result.get('agent_assignment', {})
+        if agent_info.get('selected_agent'):
+            confidence = agent_info.get('confidence', 0)
+            response_parts.append(f"\n👤 **Agent**: {agent_info['selected_agent'].title()} (Confidence: {confidence:.1%})")
+            
+            if verbose and agent_info.get('reasoning'):
+                response_parts.append(f"**Reasoning**: {agent_info['reasoning']}")
+        
+        # Execution analytics (if verbose)
+        if verbose:
+            analytics = result.get('execution_analytics', {})
+            if analytics:
+                response_parts.append("\n📊 **Analytics**:")
+                if 'total_execution_time' in analytics:
+                    response_parts.append(f"- Execution time: {analytics['total_execution_time']:.2f}s")
+                if 'memory_guided_decisions' in analytics:
+                    response_parts.append(f"- Memory-guided decisions: {analytics['memory_guided_decisions']}")
+                if 'learning_applied' in analytics:
+                    response_parts.append(f"- Learning applied: {analytics['learning_applied']}")
+        
+        # Recommendations
+        recommendations = result.get('recommendations', [])
+        if recommendations:
+            response_parts.append("\n💡 **Recommendations**:")
+            for i, rec in enumerate(recommendations[:3], 1):  # Show top 3
+                response_parts.append(f"{i}. {rec}")
+        
+        return '\n'.join(response_parts)
+    
     async def handle_query(self, query_text: str, args) -> str:
         """Handle a single query with full Phase 3 processing and TreeQuest integration"""
         
@@ -227,10 +363,51 @@ Examples:
                     
                     return response
         
-        # Step 3: Route to AI provider with TreeQuest consideration
-        # When TreeQuest is enabled, prioritize it for complex queries
-        if args.treequest and self._is_complex_query(query_text):
-            # Use TreeQuest directly for complex queries
+        # Step 3: Route to Enhanced TreeQuest or standard processing
+        # Use Enhanced TreeQuest for complex queries when available
+        if self.enhanced_treequest and self._is_complex_query(query_text):
+            try:
+                # Build enhanced context
+                context = {
+                    "query": query_text,
+                    "conversation_history": conversation_manager.get_recent_messages(5),
+                    "project_context": conversation_manager.get_context_for_ai(),
+                    "user_preferences": {"verbose": args.verbose, "debug": args.debug},
+                    "task_type": self._classify_query_type(query_text),
+                    "complexity": self._calculate_query_complexity(query_text),
+                    "in_project_directory": self._is_in_project_directory()
+                }
+                
+                logger.info("🧠 Using Enhanced TreeQuest for complex query...")
+                result = await self.enhanced_treequest.solve_enhanced(query_text, context)
+                
+                if result.get("success", False):
+                    # Format enhanced response
+                    response = self._format_enhanced_response(result, args.verbose)
+                else:
+                    response = f"🤖 Enhanced TreeQuest encountered an issue: {result.get('error', 'Unknown error')}"
+                
+                # Log interaction with enhanced metadata
+                conversation_manager.add_message("user", query_text)
+                conversation_manager.add_message("assistant", response, {
+                    "provider": "enhanced_treequest",
+                    "routing_confidence": 1.0,
+                    "query_type": "enhanced_treequest",
+                    "agent_used": result.get('agent_assignment', {}).get('selected_agent', 'unknown'),
+                    "execution_time": result.get('execution_analytics', {}).get('total_execution_time', 0),
+                    "memory_guided": result.get('enhanced_features', {}).get('memory_guided', False),
+                    "learning_applied": result.get('execution_analytics', {}).get('learning_applied', False)
+                })
+                
+                return response
+                
+            except Exception as e:
+                logger.error(f"Enhanced TreeQuest error: {e}")
+                # Fall back to standard processing
+                
+        # Fall back to standard TreeQuest if available
+        elif args.treequest and self._is_complex_query(query_text):
+            # Use standard TreeQuest for complex queries
             try:
                 task = "general_ai_assistance"
                 context = {

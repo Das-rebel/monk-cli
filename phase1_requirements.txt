@@ -1,0 +1,93 @@
+# Phase 1 Foundation Requirements
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database & Storage
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.23
+alembic==1.13.1
+redis[hiredis]==5.0.1
+pinecone-client==2.2.4
+
+# AI & ML
+openai==1.3.8
+anthropic==0.7.8
+tiktoken==0.5.2
+numpy==1.24.4
+scipy==1.11.4
+scikit-learn==1.3.2
+
+# Phase 2 Advanced ML
+torch==2.1.0
+transformers==4.35.0
+accelerate==0.24.1
+
+# Memory & Vector Operations
+chromadb==0.4.18
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+
+# Agent Framework
+langchain==0.0.338
+langchain-experimental==0.0.45
+langchain-community==0.0.13
+
+# HTTP & API
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
+
+# Phase 2 Web Scraping & Parsing
+beautifulsoup4==4.12.2
+feedparser==6.0.10
+lxml==4.9.3
+
+# Task Management & Async
+celery[redis]==5.3.4
+asyncio-mqtt==0.11.1
+python-multipart==0.0.6
+
+# Monitoring & Logging
+prometheus-client==0.19.0
+structlog==23.2.0
+rich==13.7.0
+
+# Configuration & Environment
+python-dotenv==1.0.0
+pyyaml==6.0.1
+toml==0.10.2
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+
+# Development Tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+pre-commit==3.6.0
+
+# Kubernetes & Cloud
+kubernetes==28.1.0
+boto3==1.34.0
+docker==6.1.3
+
+# WebSocket & Real-time
+websockets==12.0
+socketio==5.10.0
+python-socketio[asyncio]==5.10.0
+
+# Security & Authentication
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+cryptography==41.0.8
+
+# Data Processing
+pandas==2.1.4
+polars==0.19.19
+orjson==3.9.10

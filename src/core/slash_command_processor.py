@@ -17,6 +17,7 @@ from src.workspace.workspace_manager import WorkspaceManager
 from src.ai.treequest_engine import TreeQuestEngine, TreeQuestConfig
 from src.ai.model_registry import ModelRegistry, ModelRole, ModelObjective
 from src.core.memory_manager import memory_manager
+from src.core.session_manager import session_manager
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class EnhancedSlashCommandProcessor:
         self.workspace_manager = WorkspaceManager()
         self.treequest_engine = None
         self.model_registry = None
+        self.session_manager = session_manager
         self._register_enhanced_commands()
     
     async def initialize(self):

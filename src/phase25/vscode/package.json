@@ -1,0 +1,420 @@
+{
+  "name": "monk-cli-vscode",
+  "displayName": "MONK CLI Assistant",
+  "description": "AI-powered development assistant with personality-driven agents and advanced code analysis",
+  "version": "2.5.0",
+  "publisher": "monk-cli",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets",
+    "Debuggers",
+    "Formatters"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "copilot",
+    "code-analysis",
+    "productivity",
+    "monk",
+    "tree-sitter",
+    "open-source"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "monk.openChat",
+        "title": "Open AI Chat",
+        "category": "MONK",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "monk.askQuestion",
+        "title": "Ask Question",
+        "category": "MONK",
+        "icon": "$(question)"
+      },
+      {
+        "command": "monk.explainCode",
+        "title": "Explain Selected Code",
+        "category": "MONK",
+        "icon": "$(info)"
+      },
+      {
+        "command": "monk.generateCode",
+        "title": "Generate Code",
+        "category": "MONK",
+        "icon": "$(add)"
+      },
+      {
+        "command": "monk.refactorCode",
+        "title": "Refactor Code",
+        "category": "MONK",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "monk.analyzeFile",
+        "title": "Analyze Current File",
+        "category": "MONK",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "monk.analyzeProject",
+        "title": "Analyze Project",
+        "category": "MONK",
+        "icon": "$(repo)"
+      },
+      {
+        "command": "monk.findBugs",
+        "title": "Find Bugs",
+        "category": "MONK",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "monk.suggestImprovements",
+        "title": "Suggest Improvements",
+        "category": "MONK",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "monk.selectPersonality",
+        "title": "Change AI Personality",
+        "category": "MONK",
+        "icon": "$(person)"
+      },
+      {
+        "command": "monk.resetPersonality",
+        "title": "Reset to Default Personality",
+        "category": "MONK"
+      },
+      {
+        "command": "monk.clearChat",
+        "title": "Clear Chat History",
+        "category": "MONK",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "monk.exportChat",
+        "title": "Export Chat History",
+        "category": "MONK",
+        "icon": "$(export)"
+      },
+      {
+        "command": "monk.showSettings",
+        "title": "Open MONK Settings",
+        "category": "MONK",
+        "icon": "$(settings)"
+      },
+      {
+        "command": "monk.restartExtension",
+        "title": "Restart Extension",
+        "category": "MONK",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "monk.openChat"
+        },
+        {
+          "command": "monk.askQuestion"
+        },
+        {
+          "command": "monk.explainCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "monk.generateCode"
+        },
+        {
+          "command": "monk.refactorCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "monk.analyzeFile",
+          "when": "activeEditor"
+        },
+        {
+          "command": "monk.analyzeProject",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "monk.findBugs",
+          "when": "activeEditor"
+        },
+        {
+          "command": "monk.suggestImprovements",
+          "when": "activeEditor"
+        },
+        {
+          "command": "monk.selectPersonality"
+        },
+        {
+          "command": "monk.resetPersonality"
+        },
+        {
+          "command": "monk.clearChat"
+        },
+        {
+          "command": "monk.exportChat"
+        },
+        {
+          "command": "monk.showSettings"
+        },
+        {
+          "command": "monk.restartExtension"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "monk.explainCode",
+          "when": "editorHasSelection",
+          "group": "monk@1"
+        },
+        {
+          "command": "monk.refactorCode",
+          "when": "editorHasSelection",
+          "group": "monk@2"
+        },
+        {
+          "command": "monk.findBugs",
+          "group": "monk@3"
+        },
+        {
+          "command": "monk.suggestImprovements",
+          "group": "monk@4"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "monk.analyzeFile",
+          "when": "resourceExtname =~ /\\.(py|js|ts|tsx|jsx|java|cpp|c|h|hpp|rs|go)$/",
+          "group": "monk@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "monk.openChat",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m"
+      },
+      {
+        "command": "monk.askQuestion",
+        "key": "ctrl+shift+q",
+        "mac": "cmd+shift+q"
+      },
+      {
+        "command": "monk.explainCode",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "monk.generateCode",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g"
+      },
+      {
+        "command": "monk.refactorCode",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "monk.selectPersonality",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p"
+      }
+    ],
+    "configuration": {
+      "title": "MONK CLI Assistant",
+      "properties": {
+        "monk.apiEndpoint": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "MONK CLI API endpoint URL"
+        },
+        "monk.enablePersonalitySelection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI personality selection"
+        },
+        "monk.defaultPersonality": {
+          "type": "string",
+          "enum": [
+            "analytical",
+            "creative",
+            "detail-oriented",
+            "collaborative"
+          ],
+          "default": "analytical",
+          "description": "Default AI personality to use"
+        },
+        "monk.enableCodeAnalysis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable advanced code analysis features"
+        },
+        "monk.enableTreeSitterParsing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable tree-sitter based code parsing"
+        },
+        "monk.maxContextLength": {
+          "type": "number",
+          "default": 8192,
+          "minimum": 1024,
+          "maximum": 32768,
+          "description": "Maximum context length for AI interactions"
+        },
+        "monk.autoSaveInterval": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 5000,
+          "maximum": 300000,
+          "description": "Auto-save interval for chat history (milliseconds)"
+        },
+        "monk.logLevel": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
+          "default": "info",
+          "description": "Logging level for extension output"
+        },
+        "monk.enableInlineCompletion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code completion (experimental)"
+        },
+        "monk.enableHover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hover information for code symbols"
+        },
+        "monk.enableDiagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code diagnostics and suggestions"
+        },
+        "monk.customPrompts": {
+          "type": "object",
+          "default": {},
+          "description": "Custom prompts for different code analysis tasks"
+        },
+        "monk.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.git/**",
+            "**/__pycache__/**",
+            "**/*.min.js",
+            "**/*.bundle.js"
+          ],
+          "description": "File patterns to exclude from analysis"
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "monkCodeAnalysis",
+          "name": "MONK Analysis",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "monk",
+          "title": "MONK Assistant",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "colors": [
+      {
+        "id": "monk.chatUserMessage",
+        "description": "Color for user messages in chat",
+        "defaults": {
+          "dark": "#0078D4",
+          "light": "#106EBE"
+        }
+      },
+      {
+        "id": "monk.chatAssistantMessage",
+        "description": "Color for assistant messages in chat",
+        "defaults": {
+          "dark": "#107C10",
+          "light": "#0F7B0F"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./dist/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^4.8.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^4.0.0",
+    "ts-loader": "^9.0.0",
+    "@vscode/test-electron": "^2.0.0",
+    "vsce": "^2.0.0"
+  },
+  "dependencies": {
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-python": "^0.23.0",
+    "tree-sitter-javascript": "^0.23.0",
+    "tree-sitter-typescript": "^0.23.0",
+    "axios": "^1.0.0",
+    "ws": "^8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/monk-cli/monk-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/monk-cli/monk-cli/issues"
+  },
+  "homepage": "https://github.com/monk-cli/monk-cli#readme",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  }
+}
